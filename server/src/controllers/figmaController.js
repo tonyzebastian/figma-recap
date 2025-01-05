@@ -2,7 +2,19 @@ const {
     fetchActivityFeed,
     fetchActivityFeedByProjectId,
     fetchActivityFeedByFileKey,
+    fetchUserInfo,
 } = require('../services/figmaService');
+
+const getPersonalId = async (req, res) => {
+    const apiToken = req.headers['x-figma-token'];
+    try {
+        const { id, handle, imgUrl } = await fetchUserInfo(apiToken); // Call the combined function
+        res.json({ id, handle, imgUrl }); // Return ID, handle, and image URL
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch user information' });
+    }
+};
+
 
 const getTeamActivity = async (req, res) => {
     try {
@@ -49,5 +61,6 @@ const getFileActivity = async (req, res) => {
 module.exports = {
     getTeamActivity,
     getProjectActivity,
-    getFileActivity
+    getFileActivity,
+    getPersonalId,
 };

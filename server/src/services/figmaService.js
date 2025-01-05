@@ -26,6 +26,21 @@ async function rateLimitedAxiosGet(url, headers) {
     return axios.get(url, { headers });
 }
 
+// Combined function to fetch user info
+async function fetchUserInfo(apiToken) {
+    const response = await axios.get('https://api.figma.com/v1/me', {
+        headers: {
+            'X-Figma-Token': apiToken,
+        },
+    });
+    return {
+        id: response.data.id,       // Return the personal ID
+        handle: response.data.handle, // Return the user's handle
+        imgUrl: response.data.img_url // Return the user's profile image URL
+    };
+}
+
+
 async function fetchPersonalId(apiToken) { // Accept apiToken as a parameter
     const response = await axios.get('https://api.figma.com/v1/me', {
         headers: {
@@ -189,4 +204,8 @@ async function fetchActivityFeedByFileKey(fileKey, apiToken) { // Accept apiToke
 }
 
 // Export all services
-module.exports = { fetchActivityFeed, fetchActivityFeedByProjectId, fetchActivityFeedByFileKey }; // Updated exports
+module.exports = {
+    fetchUserInfo,
+    fetchActivityFeed,
+    fetchActivityFeedByProjectId,
+    fetchActivityFeedByFileKey }; // Updated exports

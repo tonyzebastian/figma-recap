@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 // API routes
-app.use('/api/activity', figmaRoutes);
+app.use('/api', figmaRoutes);
 
 // Serve static files from React build in production
 if (process.env.NODE_ENV === 'production') {

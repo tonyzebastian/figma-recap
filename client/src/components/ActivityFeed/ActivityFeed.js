@@ -9,14 +9,28 @@ function ActivityFeed() {
     const [inputId, setInputId] = useState('');
     const [results, setResults] = useState(null);
     const [error, setError] = useState(null);
+    const [userHandle, setUserHandle] = useState(''); // State to hold the user's handle
+    const [userImgUrl, setUserImgUrl] = useState(''); // State to hold the user's profile image URL
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
         setResults(null);
+        setUserHandle(''); // Reset user handle on new submission
+        setUserImgUrl(''); // Reset user image URL on new submission
     
         try {
-            let endpoint = 'http://localhost:3000/api/activity'; // Full URL to the backend
+            // Fetch the user's personal ID and name first
+            const personalIdResponse = await axios.get('http://localhost:3000/api/personalId', {
+                headers: {
+                    'X-Figma-Token': apiToken
+                }
+            });
+            setUserHandle(personalIdResponse.data.handle); // Set the user handle
+            setUserImgUrl(personalIdResponse.data.imgUrl); // Set the user image URL
+
+            // Now fetch the activity data
+            let endpoint = 'http://localhost:3000/api'; // Full URL to the backend
             if (idType === 'teamId') {
                 endpoint += `/${inputId}`;
             } else if (idType === 'projectId') {
@@ -24,13 +38,13 @@ function ActivityFeed() {
             } else if (idType === 'fileKey') {
                 endpoint += `/file/${inputId}`;
             }
-    
+
             const response = await axios.get(endpoint, {
                 headers: {
                     'X-Figma-Token': apiToken
                 }
             });
-    
+
             console.log('API Response:', response.data); // Log the entire response
 
             const heatmapData = Object.entries(response.data.editCount).map(([date, count]) => ({
@@ -40,16 +54,18 @@ function ActivityFeed() {
 
             // Set the raw response data instead of heatmap data
             setResults(heatmapData); 
-        } catch (err) {
-            setError(err.response?.data?.error || 'An error occurred');
-            console.error('Error fetching activity:', err);
-        }
-    };
+            } catch (err) {
+                setError(err.response?.data?.error || 'An error occurred');
+                console.error('Error fetching activity:', err);
+            }
+        };
 
     return (
         <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
             <h1 className="text-xl font-bold mb-4">Figma Activity Feed Generator</h1>
-            
+            {userHandle && <h2 className="text-lg mb-4">User: {userHandle}</h2>} {/* Display user handle */}
+            {userImgUrl && <img src={userImgUrl} alt="User Profile" className="w-16 h-16 rounded-full mb-4" />} {/* Display user profile image */}
+
             <form onSubmit={handleSubmit}>
                 <label className="block mb-2">
                     <span className="text-gray-700">Figma API Token</span>
@@ -111,7 +127,7 @@ function ActivityFeed() {
                     <HeatMap
                         value={results}
                         weekLabels={['', 'Mon', '', 'Wed', '', 'Fri', '']}
-                        startDate={new Date('2023/07/01')} // Adjust start date as needed
+                        startDate={new Date('2023/01/01')} // Adjust start date as needed
                     />
                 </div>
             )}
