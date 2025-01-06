@@ -5,8 +5,7 @@ import HeatMap from '@uiw/react-heat-map';
 
 function ActivityFeed() {
     const [apiToken, setApiToken] = useState('');
-    const [idType, setIdType] = useState('teamId');
-    const [inputId, setInputId] = useState('');
+    const [inputId, setInputId] = useState(''); // State for Team URL
     const [results, setResults] = useState(null);
     const [error, setError] = useState(null);
     const [userHandle, setUserHandle] = useState(''); // State to hold the user's handle
@@ -31,13 +30,7 @@ function ActivityFeed() {
 
             // Now fetch the activity data
             let endpoint = 'http://localhost:3000/api'; // Full URL to the backend
-            if (idType === 'teamId') {
-                endpoint += `/${inputId}`;
-            } else if (idType === 'projectId') {
-                endpoint += `/project/${inputId}`;
-            } else if (idType === 'fileKey') {
-                endpoint += `/file/${inputId}`;
-            }
+            endpoint += `/${inputId}`; // Only using Team ID
 
             const response = await axios.get(endpoint, {
                 headers: {
@@ -52,68 +45,60 @@ function ActivityFeed() {
                 count: count
             }));
 
+            // Group data by year
+            const groupedData = heatmapData.reduce((acc, { date, count }) => {
+                const year = new Date(date).getFullYear();
+                if (!acc[year]) {
+                    acc[year] = [];
+                }
+                acc[year].push({ date, count });
+                return acc;
+            }, {});
+
             // Set the raw response data instead of heatmap data
-            setResults(heatmapData); 
-            } catch (err) {
-                setError(err.response?.data?.error || 'An error occurred');
-                console.error('Error fetching activity:', err);
-            }
-        };
+            setResults(groupedData); 
+        } catch (err) {
+            setError(err.response?.data?.error || 'An error occurred');
+            console.error('Error fetching activity:', err);
+        }
+    };
 
     return (
-        <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
-            <h1 className="text-xl font-bold mb-4">Figma Activity Feed Generator</h1>
-            {userHandle && <h2 className="text-lg mb-4">User: {userHandle}</h2>} {/* Display user handle */}
-            {userImgUrl && <img src={userImgUrl} alt="User Profile" className="w-16 h-16 rounded-full mb-4" />} {/* Display user profile image */}
+        <div className="flex flex-col mx-auto items-center justify-center">
+            <div className='flex flex-col justify-center items-center mt-20'>
+                <h1 className="font-geist text-3xl font-bold mb-2 text-slate-900">Figma Recap</h1> {/* Updated title */}
+                <p className="text-slate-600 mb-4">Every Edit, Every Design—At a Glance</p> {/* Added description */}
+            </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
                 <label className="block mb-2">
-                    <span className="text-gray-700">Figma API Token</span>
+                    <span className="text-slate-900 font-geist font-medium text-sm pr-2">Personal access token</span>
+                    <span className="text-slate-600 font-geist font-normal text-sm">How to generate API Token?</span>
                     <input
                         type="text"
                         value={apiToken}
                         onChange={(e) => setApiToken(e.target.value)}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
-                        placeholder="Enter your Figma API Token"
+                        className="mt-1 block w-full p-2 h-9 border border-slate-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
                     />
                 </label>
 
-                <div className="mb-4">
-                    <span className="text-gray-700">Select ID Type:</span>
-                    {['teamId', 'projectId', 'fileKey'].map((type) => (
-                        <div key={type} className="flex items-center mb-2">
-                            <input
-                                type="radio"
-                                id={type}
-                                value={type}
-                                checked={idType === type}
-                                onChange={(e) => setIdType(e.target.value)}
-                                className="mr-2"
-                            />
-                            <label htmlFor={type} className="text-gray-700">
-                                {type.charAt(0).toUpperCase() + type.slice(1)}
-                            </label>
-                        </div>
-                    ))}
-                </div>
-
                 <label className="block mb-4">
-                    <span className="text-gray-700">Enter ID:</span>
+                    <span className="text-slate-900 font-geist font-medium text-sm">Team URL</span> {/* Updated label */}
+                    <span className="text-slate-600 font-geist font-normal text-sm">Where to copy project key?</span>
                     <input
                         type="text"
                         value={inputId}
                         onChange={(e) => setInputId(e.target.value)}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
-                        placeholder="Enter ID based on selection"
+                        className="mt-1 block w-full p-2 h-9 border border-slate-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
                     />
                 </label>
 
                 <button
                     type="submit"
-                    className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600"
+                    className=" bg-slate-900 text-white py-2 rounded-md hover:bg-slate-800"
                 >
-                    Generate Activity Feed
-                </button>
+                    Recap
+                </button> 
             </form>
 
             {error && (
@@ -122,15 +107,21 @@ function ActivityFeed() {
                 </div>
             )}
 
-            {results && (
-                <div className="mt-4">
+
+            {userHandle && <h2 className="text-lg mb-4">User: {userHandle}</h2>} {/* Display user handle */}
+            {userImgUrl && <img src={userImgUrl} alt="User Profile" className="w-16 h-16 rounded-full mb-4" />} {/* Display user profile image */}
+            
+            {results && Object.entries(results).map(([year, data]) => (
+                <div key={year} className="mt-4">
+                    <h3 className="text-xl font-bold mb-2">{year}</h3> {/* Display year */}
                     <HeatMap
-                        value={results}
-                        weekLabels={['', 'Mon', '', 'Wed', '', 'Fri', '']}
-                        startDate={new Date('2023/01/01')} // Adjust start date as needed
+                        value={data.map(({ date, count }) => ({ date, count }))}
+                        width={700}
+                        weekLabels={['', '', '', '', '', '', '']}
+                        startDate={new Date(`${year}/01/01`)} // Start date for each heatmap
                     />
                 </div>
-            )}
+            ))}
         </div>
     );
 }

@@ -4,7 +4,11 @@ module.exports = {
     './src/**/*.{js,jsx,ts,tsx}', // Include your JavaScript files if you use Tailwind in them
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        geist: ['Geist', 'sans-serif'], // Add Geist font family
+      },
+    },
   },
   plugins: [],
 };

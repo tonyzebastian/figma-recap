@@ -1,3 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
+
+/* Add custom font family to Tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.font-geist {
+  font-family: 'Geist', sans-serif;
+}
