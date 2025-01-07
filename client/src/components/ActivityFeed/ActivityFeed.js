@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import HeatMap from '@uiw/react-heat-map';
+import html2canvas from 'html2canvas';
 
 function ActivityFeed() {
     const [apiToken, setApiToken] = useState('');
@@ -10,6 +11,7 @@ function ActivityFeed() {
     const [error, setError] = useState(null);
     const [userHandle, setUserHandle] = useState(''); // State to hold the user's handle
     const [userImgUrl, setUserImgUrl] = useState(''); // State to hold the user's profile image URL
+    const [loading, setLoading] = useState(false); // New state for loading
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -17,6 +19,7 @@ function ActivityFeed() {
         setResults(null);
         setUserHandle(''); // Reset user handle on new submission
         setUserImgUrl(''); // Reset user image URL on new submission
+        setLoading(true); // Set loading to true when submission starts
     
         try {
             // Fetch the user's personal ID and name first
@@ -60,45 +63,63 @@ function ActivityFeed() {
         } catch (err) {
             setError(err.response?.data?.error || 'An error occurred');
             console.error('Error fetching activity:', err);
+        } finally {
+            setLoading(false); // Set loading to false after the operation
         }
     };
 
+    const downloadDivAsImage = async () => {
+        const element = document.getElementById('downloadable-div'); // Replace with your div's ID
+        const canvas = await html2canvas(element);
+        const dataUrl = canvas.toDataURL('image/png');
+
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = 'activity_feed.png'; // Name of the downloaded file
+        link.click();
+    };
+
     return (
-        <div className="flex flex-col mx-auto items-center justify-center">
+        <div className="flex flex-col mx-auto items-center justify-center gap-8">
             <div className='flex flex-col justify-center items-center mt-20'>
                 <h1 className="font-geist text-3xl font-bold mb-2 text-slate-900">Figma Recap</h1> {/* Updated title */}
                 <p className="text-slate-600 mb-4">Every Edit, Every Design—At a Glance</p> {/* Added description */}
             </div>
 
-            <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
+            <form onSubmit={handleSubmit} className='flex flex-col gap-4 w-96'>
                 <label className="block mb-2">
-                    <span className="text-slate-900 font-geist font-medium text-sm pr-2">Personal access token</span>
-                    <span className="text-slate-600 font-geist font-normal text-sm">How to generate API Token?</span>
+                    <span className="text-slate-900 font-geist font-medium text-sm pr-12">Figma personal access token</span>
+                    <span className="text-slate-600 font-geist font-normal text-sm">How to generate?</span>
                     <input
                         type="text"
                         value={apiToken}
                         onChange={(e) => setApiToken(e.target.value)}
-                        className="mt-1 block w-full p-2 h-9 border border-slate-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
+                        className="mt-1 block w-full p-2 h-10 border font-geist text-sm text-slate-900 border-slate-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
                     />
                 </label>
 
                 <label className="block mb-4">
                     <span className="text-slate-900 font-geist font-medium text-sm">Team URL</span> {/* Updated label */}
-                    <span className="text-slate-600 font-geist font-normal text-sm">Where to copy project key?</span>
+                    <span className="text-slate-600 font-geist font-normal text-sm">Where to find team URL?</span>
                     <input
                         type="text"
                         value={inputId}
                         onChange={(e) => setInputId(e.target.value)}
-                        className="mt-1 block w-full p-2 h-9 border border-slate-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
+                        className="mt-1 block p-2 h-10 w-full font-geist text-sm text-slate-900 border border-slate-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
                     />
                 </label>
 
                 <button
                     type="submit"
-                    className=" bg-slate-900 text-white py-2 rounded-md hover:bg-slate-800"
+                    className="bg-slate-900 text-white py-2 rounded-md hover:bg-slate-800 flex items-center justify-center"
+                    disabled={loading} // Disable button when loading
                 >
-                    Recap
-                </button> 
+                    {loading ? (
+                        <div className="spinner mr-2"></div> // Spinner animation
+                    ) : null}
+                    {loading ? 'Loading...' : 'Recap'} {/* Show loading text or button text */}
+                </button>
+
             </form>
 
             {error && (
@@ -107,21 +128,33 @@ function ActivityFeed() {
                 </div>
             )}
 
+            {userHandle || userImgUrl ? ( // Check if userHandle or userImgUrl is set
+                <div> 
+                    <button onClick={downloadDivAsImage} className="bg-slate-900 text-white py-2 rounded-md hover:bg-slate-800">
+                        Download as Image
+                    </button>
 
-            {userHandle && <h2 className="text-lg mb-4">User: {userHandle}</h2>} {/* Display user handle */}
-            {userImgUrl && <img src={userImgUrl} alt="User Profile" className="w-16 h-16 rounded-full mb-4" />} {/* Display user profile image */}
-            
-            {results && Object.entries(results).map(([year, data]) => (
-                <div key={year} className="mt-4">
-                    <h3 className="text-xl font-bold mb-2">{year}</h3> {/* Display year */}
-                    <HeatMap
-                        value={data.map(({ date, count }) => ({ date, count }))}
-                        width={700}
-                        weekLabels={['', '', '', '', '', '', '']}
-                        startDate={new Date(`${year}/01/01`)} // Start date for each heatmap
-                    />
+                    <div id="downloadable-div" className="mt-4"> {/* New div wrapping user info and heatmaps */}
+
+                        {userHandle && <h2 className="text-lg mb-4">User: {userHandle}</h2>} {/* Display user handle */}
+                        {userImgUrl && <img src={userImgUrl} alt="User Profile" className="w-16 h-16 rounded-full mb-4"  />} {/* Display user profile image */}
+                        
+                        {results && Object.entries(results).map(([year, data]) => (
+                            <div key={year} className="mt-4">
+                                <h3 className="text-xl font-bold mb-2">{year}</h3> {/* Display year */}
+                                <HeatMap
+                                    value={data.map(({ date, count }) => ({ date, count }))}
+                                    width={700}
+                                    weekLabels={['', '', '', '', '', '', '']}
+                                    startDate={new Date(`${year}/01/01`)} // Start date for each heatmap
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    
                 </div>
-            ))}
+            ) : null}
+
         </div>
     );
 }
