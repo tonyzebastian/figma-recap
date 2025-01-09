@@ -3,6 +3,8 @@ import { useState } from 'react';
 import axios from 'axios';
 import HeatMap from '@uiw/react-heat-map';
 import html2canvas from 'html2canvas';
+import HeroIllo from '../HeroIllo';
+
 
 function ActivityFeed() {
     const [apiToken, setApiToken] = useState('');
@@ -80,47 +82,54 @@ function ActivityFeed() {
     };
 
     return (
-        <div className="flex flex-col mx-auto items-center justify-center gap-8">
-            <div className='flex flex-col justify-center items-center mt-20'>
-                <h1 className="font-geist text-3xl font-bold mb-2 text-slate-900">Figma Recap</h1> {/* Updated title */}
-                <p className="text-slate-600 mb-4">Every Edit, Every Design—At a Glance</p> {/* Added description */}
+        <div className="flex flex-col mx-auto items-center justify-start gap-16 w-full">
+
+            
+            <div className='flex flex-col w-[450px] gap-16'>
+                {/* Hero Section */}
+                <div className='flex flex-col justify-center items-center mt-24 gap-4'>
+                    <HeroIllo />
+                    <p className="text-slate-900 mb-4">Every edit, every design— At a glance</p> {/* Added description */}
+                </div>
+
+                {/* Input Form */}
+                
+                <form onSubmit={handleSubmit} className='flex flex-col gap-2 w-full '>
+                    <label className="block mb-2">
+                        <span className="text-slate-900 font-geist font-medium text-sm pr-12">Figma personal access token</span>
+                        <input
+                            type="text"
+                            value={apiToken}
+                            onChange={(e) => setApiToken(e.target.value)}
+                            className="mt-1 block w-full p-2 h-10 border font-geist text-sm text-slate-900 border-slate-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
+                        />
+                    </label>
+
+                    <label className="block mb-4">
+                        <span className="text-slate-900 font-geist font-medium text-sm">Team URL</span> {/* Updated label */}
+                        <input
+                            type="text"
+                            value={inputId}
+                            onChange={(e) => setInputId(e.target.value)}
+                            className="mt-1 block p-2 h-10 w-full font-geist text-sm text-slate-900 border border-slate-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
+                        />
+                    </label>
+
+                    <div className='w-full flex items-center justify-center'>
+                        <button
+                            type="submit"
+                            className="bg-slate-900 text-white py-2 rounded-md hover:bg-slate-800 flex items-center justify-center w-36"
+                            disabled={loading} // Disable button when loading
+                        >
+                            {loading ? (
+                                <div className="spinner mr-2"></div> // Spinner animation
+                            ) : null}
+                            {loading ? 'Loading...' : 'Recap'} {/* Show loading text or button text */}
+                        </button>
+                    </div>
+
+                </form>
             </div>
-
-            <form onSubmit={handleSubmit} className='flex flex-col gap-4 w-96'>
-                <label className="block mb-2">
-                    <span className="text-slate-900 font-geist font-medium text-sm pr-12">Figma personal access token</span>
-                    <span className="text-slate-600 font-geist font-normal text-sm">How to generate?</span>
-                    <input
-                        type="text"
-                        value={apiToken}
-                        onChange={(e) => setApiToken(e.target.value)}
-                        className="mt-1 block w-full p-2 h-10 border font-geist text-sm text-slate-900 border-slate-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
-                    />
-                </label>
-
-                <label className="block mb-4">
-                    <span className="text-slate-900 font-geist font-medium text-sm">Team URL</span> {/* Updated label */}
-                    <span className="text-slate-600 font-geist font-normal text-sm">Where to find team URL?</span>
-                    <input
-                        type="text"
-                        value={inputId}
-                        onChange={(e) => setInputId(e.target.value)}
-                        className="mt-1 block p-2 h-10 w-full font-geist text-sm text-slate-900 border border-slate-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
-                    />
-                </label>
-
-                <button
-                    type="submit"
-                    className="bg-slate-900 text-white py-2 rounded-md hover:bg-slate-800 flex items-center justify-center"
-                    disabled={loading} // Disable button when loading
-                >
-                    {loading ? (
-                        <div className="spinner mr-2"></div> // Spinner animation
-                    ) : null}
-                    {loading ? 'Loading...' : 'Recap'} {/* Show loading text or button text */}
-                </button>
-
-            </form>
 
             {error && (
                 <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-md">
@@ -128,6 +137,7 @@ function ActivityFeed() {
                 </div>
             )}
 
+            {/* Results section */}
             {userHandle || userImgUrl ? ( // Check if userHandle or userImgUrl is set
                 <div> 
                     <button onClick={downloadDivAsImage} className="bg-slate-900 text-white py-2 rounded-md hover:bg-slate-800">

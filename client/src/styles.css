@@ -5,6 +5,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body{
+  background-color:#f8fafc;
+}
+
 .font-geist {
   font-family: 'Geist', sans-serif;
 }
@@ -21,4 +25,23 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* client/src/styles.css */
+.scrollbar-space {
+  padding-right: 15px; /* Adjust this value based on your scrollbar width */
+  overflow-y: scroll; /* Enable vertical scrolling but keep it disabled */
+}
+
+/* Optional: Style the scrollbar to be hidden */
+.scrollbar-space::-webkit-scrollbar {
+  width: 15px; /* Width of the scrollbar */
+}
+
+.scrollbar-space::-webkit-scrollbar-thumb {
+  background: transparent; /* Make the scrollbar thumb transparent */
+}
+
+.scrollbar-space::-webkit-scrollbar-track {
+  background: transparent; /* Background of the scrollbar track */
 }
