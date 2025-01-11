@@ -4,6 +4,8 @@ import axios from 'axios';
 import HeatMap from '@uiw/react-heat-map';
 import html2canvas from 'html2canvas';
 import HeroIllo from '../HeroIllo';
+import { Download, Meh,} from 'react-feather';
+import HeartIllo from '../HeartIllo';
 
 
 function ActivityFeed() {
@@ -22,6 +24,10 @@ function ActivityFeed() {
         setUserHandle(''); // Reset user handle on new submission
         setUserImgUrl(''); // Reset user image URL on new submission
         setLoading(true); // Set loading to true when submission starts
+
+         // Process inputId to extract the numeric ID from the URL
+         const teamIdMatch = inputId.match(/team\/(\d+)(\/all-projects)?/); // Match the number between 'team/' and '/all-projects'
+         const teamId = teamIdMatch ? teamIdMatch[1] : ''; // Extract the number or set to empty if not found
     
         try {
             // Fetch the user's personal ID and name first
@@ -35,7 +41,7 @@ function ActivityFeed() {
 
             // Now fetch the activity data
             let endpoint = 'http://localhost:3000/api'; // Full URL to the backend
-            endpoint += `/${inputId}`; // Only using Team ID
+            endpoint += `/${teamId}`; // Only using Team ID
 
             const response = await axios.get(endpoint, {
                 headers: {
@@ -63,7 +69,20 @@ function ActivityFeed() {
             // Set the raw response data instead of heatmap data
             setResults(groupedData); 
         } catch (err) {
-            setError(err.response?.data?.error || 'An error occurred');
+            // Check for specific error status codes and set user-friendly messages
+            if (err.response) {
+                if (err.response.status === 400) {
+                    setError('Try after entering Figma personal access token'); // User-friendly message for 400
+                } else if (err.response.status === 404) {
+                    setError('The Team is not found. Check the Team URL and try again'); // User-friendly message for 404
+                } else {
+                    setError(err.response?.data?.error || 'An error occurred'); // Fallback for other errors
+                }
+            } else if (err.code === 'ERR_NETWORK') {
+                setError('Server down. Try again after sometime'); // User-friendly message for connection refused
+            } else {
+                setError('An error occurred'); // Handle network errors
+            }
             console.error('Error fetching activity:', err);
         } finally {
             setLoading(false); // Set loading to false after the operation
@@ -77,8 +96,9 @@ function ActivityFeed() {
 
         const link = document.createElement('a');
         link.href = dataUrl;
-        link.download = 'activity_feed.png'; // Name of the downloaded file
+        link.download = 'figma_recap.png'; // Name of the downloaded file
         link.click();
+
     };
 
     return (
@@ -132,7 +152,8 @@ function ActivityFeed() {
             </div>
 
             {error && (
-                <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-md">
+                <div className="p-3 bg-red-50 text-slate-900 border border-red-700 rounded-md flex items-center font-geist text-base w-[450px]">
+                    <Meh className="mr-2" /> {/* Added Meh icon for errors */}
                     {error}
                 </div>
             )}
@@ -140,26 +161,53 @@ function ActivityFeed() {
             {/* Results section */}
             {userHandle || userImgUrl ? ( // Check if userHandle or userImgUrl is set
                 <div> 
-                    <button onClick={downloadDivAsImage} className="bg-slate-900 text-white py-2 rounded-md hover:bg-slate-800">
-                        Download as Image
-                    </button>
+                    {results && ( 
+                    <div className="flex flex-col items-center border-t pt-8 pb-2 border-slate-200">
+                        <h2 className="text-lg mb-4">Your Figma Recap is ready to be downloaded! 🎉</h2>
+                        <button onClick={downloadDivAsImage} className="bg-green-600 text-white py-1 px-3 rounded-md hover:bg-slate-800 flex items-center justify-center gap-2">
+                            <Download size={20} className="text-slate-200 ml-1" /> {/* Use the Download icon */}
+                            Download
+                        </button>
+                    </div>
+                    )}
 
-                    <div id="downloadable-div" className="mt-4"> {/* New div wrapping user info and heatmaps */}
+                    <div id="downloadable-div" className="mt-4 border p-16 bg-white rounded-lg min-w-[450px] transition-all duration-300 ease-in"> {/* New div wrapping user info and heatmaps */}
 
-                        {userHandle && <h2 className="text-lg mb-4">User: {userHandle}</h2>} {/* Display user handle */}
-                        {userImgUrl && <img src={userImgUrl} alt="User Profile" className="w-16 h-16 rounded-full mb-4"  />} {/* Display user profile image */}
-                        
+                        <div className="flex flex-row items-center justify-between mb-4 min-w-[800]">
+                            <div className='flex flex-row gap-2 items-center'>
+                                {userImgUrl && <img src={userImgUrl} alt="User Profile" className="w-8 h-8 rounded-full border border-slate-400"   />}                   
+                                {userHandle && <h2 className="text-base font-medium font-geist text-slate-900">{userHandle}</h2>} {/* Display user handle */}
+                            </div>
+                            {results && ( 
+                            <HeroIllo width={175} height={90} />
+                            )}
+                        </div>
+
                         {results && Object.entries(results).map(([year, data]) => (
-                            <div key={year} className="mt-4">
-                                <h3 className="text-xl font-bold mb-2">{year}</h3> {/* Display year */}
-                                <HeatMap
-                                    value={data.map(({ date, count }) => ({ date, count }))}
-                                    width={700}
-                                    weekLabels={['', '', '', '', '', '', '']}
-                                    startDate={new Date(`${year}/01/01`)} // Start date for each heatmap
-                                />
+                            <div key={year} className=" flex flex-row items-center -mx-3">
+                                <h3 className="text-sm font-geist font-medium -rotate-90 text-slate-700 -mt-4">{year}</h3> {/* Display year */}
+                                <div className='-ml-6'>
+                                    <HeatMap
+                                        value={data.map(({ date, count }) => ({ date, count }))}
+                                        width={700}
+                                        weekLabels={['', '', '', '', '', '', '']}
+                                        startDate={new Date(`${year}/01/01`)} // Start date for each heatmap
+                                        endDate={undefined}
+                                        legendCellSize={0}
+                                    />
+                                </div>
                             </div>
                         ))}
+
+                        {results && ( 
+                        <div className="flex items-center gap-2 ">
+                             <div className='flex flex-row items-center'>
+                                <h2 className='font-geist text-sm font-medium text-slate-900  hover:underline'>tonyzeb.design</h2>
+                            </div>
+                            <HeartIllo />
+                        </div>
+                        )}
+
                     </div>
                     
                 </div>

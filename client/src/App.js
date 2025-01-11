@@ -6,7 +6,7 @@ import './styles.css';
 
 function App() {
   return (
-    <div className="h-screen bg-slate-50 mx-auto flex flex-col items-center justify-start gap-16 ml-7 scrollbar-space">
+    <div className="h-screen bg-slate-50 mx-auto flex flex-col items-center justify-start gap-16  ">
       {/* Your content goes here */}
       <ActivityFeed />
       <FAQSection /> 

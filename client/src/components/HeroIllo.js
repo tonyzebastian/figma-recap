@@ -1,9 +1,11 @@
 
-function HeroIllo() {
+function HeroIllo({ width = 273, height = 128 }) 
+
+{
 
     return (
         <div >
-            <svg width="273" height="128" viewBox="0 0 273 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width={width} height={height} viewBox="0 0 273 128" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M245.865 91.9903L235.977 9.07221L12.2765 35.7606L22.1651 118.679L245.865 91.9903Z" fill="white"/>
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M21.104 121.088L248.735 93.9308L238.432 7.53969L10.8013 34.697L21.104 121.088ZM23.7276 117.754L14.1354 37.3205L235.808 10.874L245.401 91.3073L23.7276 117.754Z" fill="#020617"/>
                 <path d="M229.224 17.4343L242.117 15.896L240.579 2.99999L227.686 4.53823L229.224 17.4343Z" fill="white"/>
