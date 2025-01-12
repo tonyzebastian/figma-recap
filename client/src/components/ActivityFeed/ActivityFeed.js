@@ -1,11 +1,12 @@
-// client/src/components/ActivityFeed/ActivityFeed.js
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import HeatMap from '@uiw/react-heat-map';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import HeroIllo from '../HeroIllo';
 import { Download, Meh,} from 'react-feather';
 import HeartIllo from '../HeartIllo';
+import Skeleton from 'react-loading-skeleton'
+import 'react-loading-skeleton/dist/skeleton.css'
 
 
 function ActivityFeed() {
@@ -24,6 +25,7 @@ function ActivityFeed() {
         setUserHandle(''); // Reset user handle on new submission
         setUserImgUrl(''); // Reset user image URL on new submission
         setLoading(true); // Set loading to true when submission starts
+        
 
          // Process inputId to extract the numeric ID from the URL
          const teamIdMatch = inputId.match(/team\/(\d+)(\/all-projects)?/); // Match the number between 'team/' and '/all-projects'
@@ -31,7 +33,7 @@ function ActivityFeed() {
     
         try {
             // Fetch the user's personal ID and name first
-            const personalIdResponse = await axios.get('http://localhost:3000/api/personalId', {
+            const personalIdResponse = await axios.get('https://figma-recap-7e0358a7ec58.herokuapp.com/api/personalId', {
                 headers: {
                     'X-Figma-Token': apiToken
                 }
@@ -40,7 +42,7 @@ function ActivityFeed() {
             setUserImgUrl(personalIdResponse.data.imgUrl); // Set the user image URL
 
             // Now fetch the activity data
-            let endpoint = 'http://localhost:3000/api'; // Full URL to the backend
+            let endpoint = 'https://figma-recap-7e0358a7ec58.herokuapp.com/api'; // Full URL to the backend
             endpoint += `/${teamId}`; // Only using Team ID
 
             const response = await axios.get(endpoint, {
@@ -72,9 +74,11 @@ function ActivityFeed() {
             // Check for specific error status codes and set user-friendly messages
             if (err.response) {
                 if (err.response.status === 400) {
-                    setError('Try after entering Figma personal access token'); // User-friendly message for 400
+                    setError('Enter your Figma access token and try again.'); // User-friendly message for 400
                 } else if (err.response.status === 404) {
-                    setError('The Team is not found. Check the Team URL and try again'); // User-friendly message for 404
+                    setError('Team not found. Check the URL and try again!'); // User-friendly message for 404
+                } else if (err.response.status === 500) {
+                    setError("Unable to load details. Check the token or URL and try again.");
                 } else {
                     setError(err.response?.data?.error || 'An error occurred'); // Fallback for other errors
                 }
@@ -89,17 +93,24 @@ function ActivityFeed() {
         }
     };
 
-    const downloadDivAsImage = async () => {
-        const element = document.getElementById('downloadable-div'); // Replace with your div's ID
-        const canvas = await html2canvas(element);
-        const dataUrl = canvas.toDataURL('image/png');
+    const ref = useRef(null); // Added ref for the div to be converted to image
 
-        const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = 'figma_recap.png'; // Name of the downloaded file
-        link.click();
+    const downloadDivAsImage = useCallback(async () => { // Updated to use useCallback
+        if (ref.current === null) {
+            return;
+        }
 
-    };
+        toPng(ref.current, { cacheBust: true }) // Changed to use toPng
+            .then((dataUrl) => {
+                const link = document.createElement('a');
+                link.download = 'figma_recap.png'; // Name of the downloaded file
+                link.href = dataUrl;
+                link.click();
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }, [ref]); // Added ref as a dependency
 
     return (
         <div className="flex flex-col mx-auto items-center justify-start gap-16 w-full">
@@ -121,7 +132,7 @@ function ActivityFeed() {
                             type="text"
                             value={apiToken}
                             onChange={(e) => setApiToken(e.target.value)}
-                            className="mt-1 block w-full p-2 h-10 border font-geist text-sm text-slate-900 border-slate-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
+                            className="mt-1 block w-full p-2 h-10 border font-geist text-sm text-slate-900 border-slate-300 rounded-md focus:border-slate-900"
                         />
                     </label>
 
@@ -131,15 +142,17 @@ function ActivityFeed() {
                             type="text"
                             value={inputId}
                             onChange={(e) => setInputId(e.target.value)}
-                            className="mt-1 block p-2 h-10 w-full font-geist text-sm text-slate-900 border border-slate-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200"
+                            className="mt-1 block p-2 h-10 w-full font-geist text-sm text-slate-900 border border-slate-300 rounded-md focus:border-slate-900 "
                         />
                     </label>
 
                     <div className='w-full flex items-center justify-center'>
                         <button
                             type="submit"
-                            className="bg-slate-900 text-white py-2 rounded-md hover:bg-slate-800 flex items-center justify-center w-36"
-                            disabled={loading} // Disable button when loading
+                            className={`text-white py-2 rounded-md flex items-center justify-center w-36 
+                                ${loading ? 'bg-slate-900' : 'bg-slate-900 hover:bg-slate-800'} 
+                                ${loading || !apiToken || !inputId ? 'bg-slate-400 cursor-not-allowed hover:bg-slate-400' : ''}`} // Change bg color when disabled
+                            disabled={loading || !apiToken || !inputId} // Disable button when loading or inputs are empty
                         >
                             {loading ? (
                                 <div className="spinner mr-2"></div> // Spinner animation
@@ -147,12 +160,11 @@ function ActivityFeed() {
                             {loading ? 'Loading...' : 'Recap'} {/* Show loading text or button text */}
                         </button>
                     </div>
-
                 </form>
             </div>
 
             {error && (
-                <div className="p-3 bg-red-50 text-slate-900 border border-red-700 rounded-md flex items-center font-geist text-base w-[450px]">
+                <div className="p-3 bg-red-50 text-red-900 border border-red-700 rounded-lg flex items-center font-geist text-base w-[450px]">
                     <Meh className="mr-2" /> {/* Added Meh icon for errors */}
                     {error}
                 </div>
@@ -164,50 +176,58 @@ function ActivityFeed() {
                     {results && ( 
                     <div className="flex flex-col items-center border-t pt-8 pb-2 border-slate-200">
                         <h2 className="text-lg mb-4">Your Figma Recap is ready to be downloaded! 🎉</h2>
-                        <button onClick={downloadDivAsImage} className="bg-green-600 text-white py-1 px-3 rounded-md hover:bg-slate-800 flex items-center justify-center gap-2">
-                            <Download size={20} className="text-slate-200 ml-1" /> {/* Use the Download icon */}
+                        <button onClick={downloadDivAsImage} className="bg-green-600 text-white py-1 px-3 rounded-md hover:bg-green-800 flex items-center justify-center gap-2">
+                            <Download size={18} className="text-slate-100" /> {/* Use the Download icon */}
                             Download
                         </button>
                     </div>
                     )}
 
-                    <div id="downloadable-div" className="mt-4 border p-16 bg-white rounded-lg min-w-[450px] transition-all duration-300 ease-in"> {/* New div wrapping user info and heatmaps */}
-
-                        <div className="flex flex-row items-center justify-between mb-4 min-w-[800]">
-                            <div className='flex flex-row gap-2 items-center'>
-                                {userImgUrl && <img src={userImgUrl} alt="User Profile" className="w-8 h-8 rounded-full border border-slate-400"   />}                   
-                                {userHandle && <h2 className="text-base font-medium font-geist text-slate-900">{userHandle}</h2>} {/* Display user handle */}
-                            </div>
-                            {results && ( 
-                            <HeroIllo width={175} height={90} />
-                            )}
-                        </div>
-
-                        {results && Object.entries(results).map(([year, data]) => (
-                            <div key={year} className=" flex flex-row items-center -mx-3">
-                                <h3 className="text-sm font-geist font-medium -rotate-90 text-slate-700 -mt-4">{year}</h3> {/* Display year */}
-                                <div className='-ml-6'>
-                                    <HeatMap
-                                        value={data.map(({ date, count }) => ({ date, count }))}
-                                        width={700}
-                                        weekLabels={['', '', '', '', '', '', '']}
-                                        startDate={new Date(`${year}/01/01`)} // Start date for each heatmap
-                                        endDate={undefined}
-                                        legendCellSize={0}
-                                    />
+                    <div id="downloadable-div" ref={ref} className="mt-4 border p-16 bg-white rounded-lg min-w-[450px] transition-all duration-300 ease-in"> {/* New div wrapping user info and heatmaps */}
+                        {(!results || results.length === 0) && !error ? ( // Check if results is null or has no items
+                            <>
+                                <p className="text-slate-600 font-geist">We are generating your recap. This could take between 5-10 min based on your team activity</p>
+                                <Skeleton count={5} />
+                            </>
+                        ) : ( // Existing content when results are available
+                            <>
+                                <div className="flex flex-row items-center justify-between mb-4 min-w-[800]">
+                                    <div className='flex flex-row gap-2 items-center'>
+                                        {userImgUrl && <img src={userImgUrl} alt="User Profile" className="w-8 h-8 rounded-full border border-slate-400"   />}                   
+                                        {userHandle && <h2 className="text-base font-medium font-geist text-slate-900">{userHandle}</h2>} {/* Display user handle */}
+                                    </div>
+                                    {results && ( 
+                                    <HeroIllo width={175} height={90} />
+                                    )}
                                 </div>
-                            </div>
-                        ))}
 
-                        {results && ( 
-                        <div className="flex items-center gap-2 ">
-                             <div className='flex flex-row items-center'>
-                                <h2 className='font-geist text-sm font-medium text-slate-900  hover:underline'>tonyzeb.design</h2>
-                            </div>
-                            <HeartIllo />
-                        </div>
+                                {results && Object.entries(results).map(([year, data]) => (
+                                    <div key={year} className=" flex flex-row items-center -mx-3">
+                                        <h3 className="text-sm font-geist font-medium -rotate-90 text-slate-700 -mt-4">{year}</h3> {/* Display year */}
+                                        <div className='-ml-6'>
+                                            <HeatMap
+                                                value={data.map(({ date, count }) => ({ date, count }))}
+                                                width={700}
+                                                weekLabels={['', '', '', '', '', '', '']}
+                                                startDate={new Date(`${year}/01/01`)} // Start date for each heatmap
+                                                endDate={undefined}
+                                                legendCellSize={0}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {results && ( 
+                                <div className="flex items-center gap-2 ">
+                                    <HeartIllo />
+                                    <div className='flex flex-row items-center'>
+                                        <h2 className='font-geist text-sm font-medium text-slate-900  hover:underline'>tonyzeb.design</h2>
+                                    </div>
+                                    
+                                </div>
+                                )}
+                            </>
                         )}
-
                     </div>
                     
                 </div>
