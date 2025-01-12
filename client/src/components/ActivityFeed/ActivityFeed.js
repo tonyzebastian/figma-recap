@@ -186,7 +186,7 @@ function ActivityFeed() {
                     <div id="downloadable-div" ref={ref} className="mt-4 border p-16 bg-white rounded-lg min-w-[450px] transition-all duration-300 ease-in"> {/* New div wrapping user info and heatmaps */}
                         {(!results || results.length === 0) && !error ? ( // Check if results is null or has no items
                             <>
-                                <p className="text-slate-600 font-geist">We are generating your recap. This could take between 5-10 min based on your team activity</p>
+                                <p className="text-slate-800 font-geist text-center pb-4 text-sm">Generating your recap… <br/> This may take 5-10 minutes depending on your team's activity.</p>
                                 <Skeleton count={5} />
                             </>
                         ) : ( // Existing content when results are available
@@ -218,10 +218,15 @@ function ActivityFeed() {
                                 ))}
 
                                 {results && ( 
-                                <div className="flex items-center gap-2 ">
-                                    <HeartIllo />
-                                    <div className='flex flex-row items-center'>
-                                        <h2 className='font-geist text-sm font-medium text-slate-900  hover:underline'>tonyzeb.design</h2>
+                                <div className="flex items-center justify-between gap-1">
+                                    <div className='flex flex-row items-center gap-2'>
+                                        <h2 className='font-geist text-sm text-slate-900'>Generate your recap at</h2>
+                                        <h2 className='font-geist text-sm font-medium text-slate-900'>figmarecap.in</h2>
+                                    </div>
+
+                                    <div className='flex flex-row items-center gap-2'>
+                                        <HeartIllo />
+                                        <h2 className='font-geist text-sm font-medium text-slate-700'>tonyzeb.design</h2>
                                     </div>
                                     
                                 </div>
