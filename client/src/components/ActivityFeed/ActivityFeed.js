@@ -5,8 +5,7 @@ import { toPng } from 'html-to-image';
 import HeroIllo from '../HeroIllo';
 import { Download, Meh,} from 'react-feather';
 import HeartIllo from '../HeartIllo';
-import Skeleton from 'react-loading-skeleton'
-import 'react-loading-skeleton/dist/skeleton.css'
+import CatLoader from '../CatLoader/CatLoader';
 
 
 function ActivityFeed() {
@@ -33,7 +32,7 @@ function ActivityFeed() {
     
         try {
             // Fetch the user's personal ID and name first
-            const personalIdResponse = await axios.get('https://figma-recap-7e0358a7ec58.herokuapp.com/api/personalId', {
+            const personalIdResponse = await axios.get('https://figma-activity.onrender.com/api/personalId', {
                 headers: {
                     'X-Figma-Token': apiToken
                 }
@@ -42,7 +41,7 @@ function ActivityFeed() {
             setUserImgUrl(personalIdResponse.data.imgUrl); // Set the user image URL
 
             // Now fetch the activity data
-            let endpoint = 'https://figma-recap-7e0358a7ec58.herokuapp.com/api'; // Full URL to the backend
+            let endpoint = 'https://figma-activity.onrender.com/api'; // Full URL to the backend
             endpoint += `/${teamId}`; // Only using Team ID
 
             const response = await axios.get(endpoint, {
@@ -123,6 +122,8 @@ function ActivityFeed() {
                     <p className="text-slate-900 mb-4">Every edit, every design— At a glance</p> {/* Added description */}
                 </div>
 
+                
+
                 {/* Input Form */}
                 
                 <form onSubmit={handleSubmit} className='flex flex-col gap-2 w-full '>
@@ -186,18 +187,20 @@ function ActivityFeed() {
                     <div id="downloadable-div" ref={ref} className="mt-4 border p-16 bg-white rounded-lg min-w-[450px] transition-all duration-300 ease-in"> {/* New div wrapping user info and heatmaps */}
                         {(!results || results.length === 0) && !error ? ( // Check if results is null or has no items
                             <>
-                                <p className="text-slate-800 font-geist text-center pb-4 text-sm">Generating your recap… <br/> This may take 5-10 minutes depending on your team's activity.</p>
-                                <Skeleton count={5} />
+                                <div className='flex flex-col items-center justify-center gap-2'>
+                                    <CatLoader/>
+                                    <p className="text-slate-800 font-geist text-center pb-4 text-sm">Generating your recap… <br/> This may take 5-10 minutes depending on your team's activity.</p>
+                                </div>
                             </>
                         ) : ( // Existing content when results are available
                             <>
-                                <div className="flex flex-row items-center justify-between mb-4 min-w-[800]">
+                                <div className="flex flex-row items-center justify-between mb-12 min-w-[800]">
                                     <div className='flex flex-row gap-2 items-center'>
-                                        {userImgUrl && <img src={userImgUrl} alt="User Profile" className="w-8 h-8 rounded-full border border-slate-400"   />}                   
+                                        {userImgUrl && <img src={userImgUrl} alt="User Profile" className="w-10 h-10 rounded-full border border-slate-300"   />}                   
                                         {userHandle && <h2 className="text-base font-medium font-geist text-slate-900">{userHandle}</h2>} {/* Display user handle */}
                                     </div>
                                     {results && ( 
-                                    <HeroIllo width={175} height={90} />
+                                    <HeroIllo width={130} height={60} />
                                     )}
                                 </div>
 
@@ -218,15 +221,15 @@ function ActivityFeed() {
                                 ))}
 
                                 {results && ( 
-                                <div className="flex items-center justify-between gap-1">
-                                    <div className='flex flex-row items-center gap-2'>
-                                        <h2 className='font-geist text-sm text-slate-900'>Generate your recap at</h2>
-                                        <h2 className='font-geist text-sm font-medium text-slate-900'>figmarecap.in</h2>
+                                <div className="flex items-center justify-between gap-1 mt-4">
+                                    <div className='flex flex-row items-center gap-1'>
+                                        <h2 className='font-geist text-sm text-slate-600'>Generate yours at</h2>
+                                        <h2 className='font-geist text-sm font-medium text-slate-800'>www.figmarecap.in</h2>
                                     </div>
 
-                                    <div className='flex flex-row items-center gap-2'>
+                                    <div className='flex flex-row items-center gap-1'>
                                         <HeartIllo />
-                                        <h2 className='font-geist text-sm font-medium text-slate-700'>tonyzeb.design</h2>
+                                        <h2 className='font-geist text-sm  text-slate-700'>tonyzeb.design</h2>
                                     </div>
                                     
                                 </div>
