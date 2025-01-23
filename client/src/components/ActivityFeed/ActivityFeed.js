@@ -175,7 +175,7 @@ function ActivityFeed() {
             {userHandle || userImgUrl ? ( // Check if userHandle or userImgUrl is set
                 <div> 
                     {results && ( 
-                    <div className="flex flex-col items-center border-t pt-8 pb-2 border-slate-200">
+                    <div className="flex flex-col items-center border-t pt-8 pb-2 border-slate-200 mb-4">
                         <h2 className="text-lg mb-4">Your Figma Recap is ready to be downloaded! 🎉</h2>
                         <button onClick={downloadDivAsImage} className="bg-green-600 text-white py-1 px-3 rounded-md hover:bg-green-800 flex items-center justify-center gap-2">
                             <Download size={18} className="text-slate-100" /> {/* Use the Download icon */}
@@ -184,7 +184,7 @@ function ActivityFeed() {
                     </div>
                     )}
 
-                    <div id="downloadable-div" ref={ref} className="mt-4 border p-16 bg-white rounded-lg min-w-[450px] transition-all duration-300 ease-in"> {/* New div wrapping user info and heatmaps */}
+                    <div id="downloadable-div" ref={ref} className="border p-16 bg-white rounded-lg min-w-[450px] transition-all duration-300 ease-in"> {/* New div wrapping user info and heatmaps */}
                         {(!results || results.length === 0) && !error ? ( // Check if results is null or has no items
                             <>
                                 <div className='flex flex-col items-center justify-center gap-2'>
