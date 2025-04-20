@@ -9,6 +9,10 @@ const FAQSection = () => {
             question: "What is Figma Recap?",
             answer: [
                 "Figma Recap is a simple app built on Figma's REST API that creates an activity feed just for you. It scans all the files in your team, tracks every edit of yours, and compiles them into a heatmap. See your design activity from day one in a fun, visual way!",
+                "Examples:",
+                <img src="../Examples/example_1.png" alt="Figma Example" className="mb-3 border border-slate-200 rounded-md" />,
+                <img src="../Examples/example_2.png" alt="Figma Example" className="mb-3 border border-slate-200 rounded-md" />,
+                <img src="../Examples/example_3.png" alt="Figma Example" className="mb-3 border border-slate-200 rounded-md" />,
             ]
         },
         {
@@ -20,7 +24,7 @@ const FAQSection = () => {
                 "3. Find Personal access tokens under security section.",
                 <img src="../FAQ/token_02.png" alt="Figma Example" className="mb-3 border border-slate-200 rounded-md" />,
                 "4. Click Generate new token to open the configuration modal.",
-                "5. Set the expiration and scopes for the token. The default scope works well for Figma Recap.",
+                "5. Set the expiration and scopes for the token. Change the scope to write for all those settings.",
                 <img src="../FAQ/token_03.png" alt="Figma Example" className="mb-3 border border-slate-200 rounded-md" />,
                 "6. Give your token a name and click Generate token.",
                 "7. Figma will generate a token for you. This is your only chance to copy it, so be sure to save it in a secure place.",
